@@ -47,18 +47,16 @@ public class EnBeanUtils extends BeanUtils {
 
             Field[] declaredFields = targetClass.getDeclaredFields();
             List<Field> ignoreFields = new ArrayList<>(); // ignore fields
-            List<String> ignoreProperties = new ArrayList<>(); // ignore properties
             for (Field field : declaredFields) {
                 Class<?> type = field.getType();
                 if (!BeanUtils.isSimpleProperty(type)) {
-                    ignoreProperties.add(field.getName());
                     ignoreFields.add(field);
                 }
             }
 
             try {
                 target = targetClass.newInstance();
-                BeanUtils.copyProperties(source, target, ignoreProperties.toArray(new String[ignoreProperties.size()]));
+                BeanUtils.copyProperties(source, target, ignoreFields.stream().map(Field::getName).toArray(String[]::new));
                 if (!ignoreFields.isEmpty()) {
                     // copy attribute which type is list.
                     for (Field field : ignoreFields) {
