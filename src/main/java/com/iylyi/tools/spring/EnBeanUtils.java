@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2017. WWW.IYLYI.COM. All rights Reserved.
+ * Copyright (c) 2014 - 2017. MOBCB Technology Co.,Ltd. All rights Reserved.
  */
 
-package com.iylyi.tools;
+package com.iylyi.tools.spring;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
