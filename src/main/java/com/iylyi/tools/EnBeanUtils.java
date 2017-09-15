@@ -52,14 +52,14 @@ public class EnBeanUtils extends BeanUtils {
 
             try {
                 target = targetClass.newInstance();
-                BeanUtils.copyProperties(source, target, ignoreFields.stream().map(Field::getName).toArray(String[]::new));
+                copyProperties(source, target, ignoreFields.stream().map(Field::getName).toArray(String[]::new));
                 if (!ignoreFields.isEmpty()) {
                     // copy attribute which type is list.
                     for (Field field : ignoreFields) {
-                        PropertyDescriptor sourcePd = BeanUtils.getPropertyDescriptor(source.getClass(), field.getName());
+                        PropertyDescriptor sourcePd = getPropertyDescriptor(source.getClass(), field.getName());
                         Method readMethod = sourcePd.getReadMethod(); // source field read method.
 
-                        PropertyDescriptor targetPd = BeanUtils.getPropertyDescriptor(targetClass, field.getName());
+                        PropertyDescriptor targetPd = getPropertyDescriptor(targetClass, field.getName());
                         Method writeMethod = targetPd.getWriteMethod(); // target field write method.
 
                         if (!Modifier.isPublic(readMethod.getDeclaringClass().getModifiers())) {
