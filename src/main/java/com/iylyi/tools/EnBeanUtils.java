@@ -10,9 +10,7 @@ import org.springframework.beans.BeanUtils;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.*;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -85,10 +83,24 @@ public class EnBeanUtils extends BeanUtils {
                             writeMethod.setAccessible(true);
                         }
 
-                        writeMethod.invoke(target,
-                                copyList(
-                                        (List<?>) value,
-                                        (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0]));
+                        if (value instanceof List) {
+                            writeMethod.invoke(target,
+                                    copyList(
+                                            (List<?>) value,
+                                            (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0]));
+                        } else if (value instanceof Set) {
+                            writeMethod.invoke(target,
+                                    copySet(
+                                            (Set<?>) value,
+                                            (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0]));
+
+                        } else if (value instanceof Map) {
+                            writeMethod.invoke(target,
+                                    copyMap(
+                                            (Map<?, ?>) value,
+                                            (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0],
+                                            (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[1]));
+                        }
                     }
                 }
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
@@ -107,10 +119,57 @@ public class EnBeanUtils extends BeanUtils {
      * @return target list
      */
     public static <T> List<T> copyList(List<?> source, Class<T> targetElementClass) {
-        return Optional.of(source)
-                .orElse(null)
+        return Optional.ofNullable(source)
+                .orElse(Collections.emptyList())
                 .stream()
                 .map(item -> copyProperties(item, targetElementClass))
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Set copy.
+     *
+     * @param source             source set
+     * @param targetElementClass target set element type
+     * @return target set
+     */
+    public static <T> Set<T> copySet(Set<?> source, Class<T> targetElementClass) {
+        return Optional.ofNullable(source)
+                .orElse(Collections.emptySet())
+                .stream()
+                .map(item -> copyProperties(item, targetElementClass))
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Map copy.
+     *
+     * @param source           source map
+     * @param targetKeyClass   target map key type
+     * @param targetValueClass target map value type
+     * @return target map
+     */
+    public static <K, V> Map<K, V> copyMap(Map<?, ?> source, Class<K> targetKeyClass, Class<V> targetValueClass) {
+        return Optional.ofNullable(source)
+                .orElse(Collections.emptyMap())
+                .entrySet()
+                .stream()
+                .collect(
+                        Collectors.toMap(
+                                entry -> {
+                                    if (targetKeyClass.isInstance(entry.getKey()) || isSimpleProperty(targetKeyClass)) {
+                                        return targetKeyClass.cast(entry.getKey());
+                                    }
+
+                                    return copyProperties(entry.getKey(), targetKeyClass);
+                                },
+                                entry -> {
+                                    if (targetValueClass.isInstance(entry.getValue()) || isSimpleProperty(targetValueClass)) {
+                                        return targetValueClass.cast(entry.getValue());
+                                    }
+
+                                    return copyProperties(entry.getValue(), targetValueClass);
+                                }));
+    }
+
 }
