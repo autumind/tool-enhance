@@ -95,11 +95,15 @@ public class EnBeanUtils extends BeanUtils {
                                             (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0]));
 
                         } else if (value instanceof Map) {
-                            writeMethod.invoke(target,
-                                    copyMap(
-                                            (Map<?, ?>) value,
-                                            (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0],
-                                            (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[1]));
+                            try {
+                                writeMethod.invoke(target,
+                                        copyMap(
+                                                (Map<?, ?>) value,
+                                                (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0],
+                                                (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[1]));
+                            } catch (ClassCastException e) {
+                                LOGGER.warn("Cast simple value type failure...");
+                            }
                         }
                     }
                 }
@@ -148,8 +152,11 @@ public class EnBeanUtils extends BeanUtils {
      * @param targetKeyClass   target map key type
      * @param targetValueClass target map value type
      * @return target map
+     *
+     * @throws ClassCastException See {@link ClassCastException}.
      */
-    public static <K, V> Map<K, V> copyMap(Map<?, ?> source, Class<K> targetKeyClass, Class<V> targetValueClass) {
+    public static <K, V> Map<K, V> copyMap(
+            Map<?, ?> source, Class<K> targetKeyClass, Class<V> targetValueClass) throws ClassCastException {
         return Optional.ofNullable(source)
                 .orElse(Collections.emptyMap())
                 .entrySet()
@@ -157,18 +164,20 @@ public class EnBeanUtils extends BeanUtils {
                 .collect(
                         Collectors.toMap(
                                 entry -> {
-                                    if (targetKeyClass.isInstance(entry.getKey()) || isSimpleProperty(targetKeyClass)) {
-                                        return targetKeyClass.cast(entry.getKey());
+                                    Object key = entry.getKey();
+                                    if (isSimpleProperty(targetKeyClass)) {
+                                        return targetKeyClass.cast(key);
                                     }
 
-                                    return copyProperties(entry.getKey(), targetKeyClass);
+                                    return copyProperties(key, targetKeyClass);
                                 },
                                 entry -> {
-                                    if (targetValueClass.isInstance(entry.getValue()) || isSimpleProperty(targetValueClass)) {
-                                        return targetValueClass.cast(entry.getValue());
+                                    Object value = entry.getValue();
+                                    if (isSimpleProperty(targetValueClass)) {
+                                        return targetValueClass.cast(value);
                                     }
 
-                                    return copyProperties(entry.getValue(), targetValueClass);
+                                    return copyProperties(value, targetValueClass);
                                 }));
     }
 
