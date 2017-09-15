@@ -57,10 +57,24 @@ public class EnBeanUtils extends BeanUtils {
                     // copy attribute which type is list.
                     for (Field field : ignoreFields) {
                         PropertyDescriptor sourcePd = getPropertyDescriptor(source.getClass(), field.getName());
+                        if (sourcePd == null) {
+                            continue;
+                        }
+
                         Method readMethod = sourcePd.getReadMethod(); // source field read method.
+                        if (readMethod == null) {
+                            continue;
+                        }
 
                         PropertyDescriptor targetPd = getPropertyDescriptor(targetClass, field.getName());
+                        if (targetPd == null) {
+                            continue;
+                        }
+
                         Method writeMethod = targetPd.getWriteMethod(); // target field write method.
+                        if (writeMethod == null) {
+                            continue;
+                        }
 
                         if (!Modifier.isPublic(readMethod.getDeclaringClass().getModifiers())) {
                             readMethod.setAccessible(true);
