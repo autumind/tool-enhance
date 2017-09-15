@@ -10,7 +10,7 @@ import org.springframework.beans.BeanUtils;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.*;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -46,13 +46,9 @@ public class EnBeanUtils extends BeanUtils {
         } else {
 
             Field[] declaredFields = targetClass.getDeclaredFields();
-            List<Field> ignoreFields = new ArrayList<>(); // ignore fields
-            for (Field field : declaredFields) {
-                Class<?> type = field.getType();
-                if (!BeanUtils.isSimpleProperty(type)) {
-                    ignoreFields.add(field);
-                }
-            }
+            List<Field> ignoreFields = Arrays.stream(declaredFields)
+                    .filter(declaredField -> !isSimpleProperty(declaredField.getType()))
+                    .collect(Collectors.toList()); // ignore fields
 
             try {
                 target = targetClass.newInstance();
