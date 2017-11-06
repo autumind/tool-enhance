@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 - 2017. MOBCB Technology Co.,Ltd. All rights Reserved.
+ * Copyright (c) 2017. IYLYI.COM. All rights Reserved.
  */
 
 package com.iylyi.tools.spring;
