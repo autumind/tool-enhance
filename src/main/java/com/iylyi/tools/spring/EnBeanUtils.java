@@ -104,6 +104,12 @@ public class EnBeanUtils extends BeanUtils {
                             } catch (ClassCastException e) {
                                 LOGGER.warn("Cast simple value type failure...");
                             }
+                        } else {
+                            if (value != null) {
+                                writeMethod.invoke(target, copyProperties(value, (Class<?>) field.getGenericType()));
+                            } else {
+                                writeMethod.invoke(target, new Object[]{null});
+                            }
                         }
                     }
                 }
